@@ -43,13 +43,13 @@ def visualize_game_data(game_data):
         # not all frame objs have actual frames asscoiated with them!
         if frame_obj.frame_path is not None:
             print("%s .... %s" % (frame_obj.time_obj.time_as_string, frame_obj.frame_path))
-            x_val = int(frame_obj.game_snap['playerStats']['7']['x'])
-            y_val = int(frame_obj.game_snap['playerStats']['7']['y'])
+            x_val = int(frame_obj.game_snap['playerStats']['4']['x'])
+            y_val = int(frame_obj.game_snap['playerStats']['4']['y'])
 
             # load in image w/ PIL for easy drawing / cropping
             im = Image.open(FRAME_DIR + frame_obj.frame_path).crop((1625, 785, 1920, 1080))
             draw = ImageDraw.Draw(im)
-            draw.rectangle([(x_val -20, y_val - 20),(x_val + 15, y_val + 10)], outline='red')
+            draw.rectangle([(x_val - 17, y_val - 18),(x_val + 7, y_val + 7)], outline='red')
             # now draw using PIL
             del draw
 
@@ -58,15 +58,6 @@ def visualize_game_data(game_data):
             cv2.imshow("IMAGE", im)
             if cv2.waitKey(1) == ord('q'):
                 break
-            # img = plt.imshow(im)
-
-            # rect = patches.Rectangle((x_val - 15, y_val - 20), 30, 30, linewidth=2, edgecolor='r', facecolor='none')
-            # ax.add_patch(rect)
-
-
-
-            # rect.remove()
-
 
 def create_data():
     # first load in lolesport JSON data. all we want is one time stamp at a time.
@@ -124,52 +115,29 @@ def convert_string_time_to_easy_time(time_str):
     return time_obj
 
 def rescale_coordinates(game_data):
-
-    # x = [int(game_data[t].game_snap['playerStats']['7']['x']) for t in game_data]
-    # y = [int(game_data[t].game_snap['playerStats']['7']['y']) for t in game_data]
-    #
-    # for snap in game_data:
-    #     for i in range(1, 10):
-    #         x.append()
-
-    # first calculate max/min for x/y
-    # for time_stamp in game_data:
-    #     frame_obj = game_data[time_stamp]
-    #     # not all frame objs have actual frames asscoiated with them!
-    #     x.append(int(frame_obj.game_snap['playerStats']['7']['x']))
-    #     y.append(int(frame_obj.game_snap['playerStats']['7']['y']))
-
     # these numbers are from remixz on GitHub, not sure how he got them, but they work!
     x_old_min = -120
     x_old_max = 14870
     y_old_min = -120
     y_old_max = 14980
 
-    x_new_max = 295
-    x_new_min = 0
+    # got these by trial and error. they just "shrink" down the map by 5 px on each side.
+    # helps cut some of the edges off.
 
-    y_new_max = 0
-    y_new_min = 295
+    x_new_max = 290
+    x_new_min = 5
 
-    # x_new_max = 270
-    # x_new_min = 20
-    #
-    # y_new_max = 20
-    # y_new_min = 270
+    y_new_max = 5
+    y_new_min = 290
 
     for time_stamp in game_data:
-        old_x = game_data[time_stamp].game_snap['playerStats']['7']['x']
-        old_y = game_data[time_stamp].game_snap['playerStats']['7']['y']
+        old_x = game_data[time_stamp].game_snap['playerStats']['4']['x']
+        old_y = game_data[time_stamp].game_snap['playerStats']['4']['y']
 
-        game_data[time_stamp].game_snap['playerStats']['7']['x'] = (((old_x - x_old_min) * (x_new_max - x_new_min)) / (x_old_max - x_old_min)) + x_new_min
-        game_data[time_stamp].game_snap['playerStats']['7']['y'] = (((old_y - y_old_min) * (y_new_max - y_new_min)) / (y_old_max - y_old_min)) + y_new_min
+        game_data[time_stamp].game_snap['playerStats']['4']['x'] = (((old_x - x_old_min) * (x_new_max - x_new_min)) / (x_old_max - x_old_min)) + x_new_min
+        game_data[time_stamp].game_snap['playerStats']['4']['y'] = (((old_y - y_old_min) * (y_new_max - y_new_min)) / (y_old_max - y_old_min)) + y_new_min
 
     return game_data
-    # now we can calculate new coordinates
-
-
-
-    (((old_val - old_min) * (new_max - new_min)) / (old_max - old_min)) + new_min
 
 # TODO below!
 # sometimes ocr will return times that aren't in sync
