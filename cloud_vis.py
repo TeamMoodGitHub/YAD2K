@@ -8,7 +8,6 @@ import base64
 from io import BytesIO
 from os import makedirs
 from os.path import join, basename
-from sys import argv
 import json
 import requests
 import os
@@ -78,6 +77,10 @@ if __name__ == '__main__':
     outfile.write('[\n')
     json.dump({'info': GAME_NAME}, outfile)
     outfile.write(',\n')
+
+
+
+    sys.exit(1)
 
     # regex for times
     reg = re.compile('^[0-5]?[0-9]:[0-9][0-9]$')
