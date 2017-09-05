@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from file_fixer import sort_files_numerically
 from pprint import pprint
-from PIL import Image
+from PIL import Image, ImageDraw
 import numpy as np
 
 # holds all data associated with a specifc frame
@@ -36,30 +36,36 @@ def main():
 
 
 def visualize_game_data(game_data):
-    plt.ion()
-    fig, ax = plt.subplots(1)
 
 
     for time_stamp in game_data:
         frame_obj = game_data[time_stamp]
         # not all frame objs have actual frames asscoiated with them!
         if frame_obj.frame_path is not None:
-
             print("%s .... %s" % (frame_obj.time_obj.time_as_string, frame_obj.frame_path))
-            # read in for matplotlib and crop just the map 1625, 785, 1920, 1080
-            im = np.array(Image.open(FRAME_DIR + frame_obj.frame_path).crop((1625, 785, 1920, 1080)), dtype=np.uint8)
-            img = ax.imshow(im)
             x_val = int(frame_obj.game_snap['playerStats']['7']['x'])
             y_val = int(frame_obj.game_snap['playerStats']['7']['y'])
 
-            rect = patches.Rectangle((x_val - 15, y_val - 20), 30, 30, linewidth=2, edgecolor='r', facecolor='none')
-            ax.add_patch(rect)
+            # load in image w/ PIL for easy drawing / cropping
+            im = Image.open(FRAME_DIR + frame_obj.frame_path).crop((1625, 785, 1920, 1080))
+            draw = ImageDraw.Draw(im)
+            draw.rectangle([(x_val -20, y_val - 20),(x_val + 15, y_val + 10)], outline='red')
+            # now draw using PIL
+            del draw
+
+            im = np.array(im, dtype = np.uint8)
+            im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB )
+            cv2.imshow("IMAGE", im)
+            if cv2.waitKey(1) == ord('q'):
+                break
+            # img = plt.imshow(im)
+
+            # rect = patches.Rectangle((x_val - 15, y_val - 20), 30, 30, linewidth=2, edgecolor='r', facecolor='none')
+            # ax.add_patch(rect)
 
 
-            plt.pause(.01)
-            plt.draw()
 
-            rect.remove()
+            # rect.remove()
 
 
 def create_data():
@@ -119,8 +125,13 @@ def convert_string_time_to_easy_time(time_str):
 
 def rescale_coordinates(game_data):
 
-    x = [int(game_data[t].game_snap['playerStats']['7']['x']) for t in game_data]
-    y = [int(game_data[t].game_snap['playerStats']['7']['y']) for t in game_data]
+    # x = [int(game_data[t].game_snap['playerStats']['7']['x']) for t in game_data]
+    # y = [int(game_data[t].game_snap['playerStats']['7']['y']) for t in game_data]
+    #
+    # for snap in game_data:
+    #     for i in range(1, 10):
+    #         x.append()
+
     # first calculate max/min for x/y
     # for time_stamp in game_data:
     #     frame_obj = game_data[time_stamp]
@@ -128,16 +139,23 @@ def rescale_coordinates(game_data):
     #     x.append(int(frame_obj.game_snap['playerStats']['7']['x']))
     #     y.append(int(frame_obj.game_snap['playerStats']['7']['y']))
 
-    x_old_min = min(x)
-    x_old_max = max(x)
-    y_old_min = min(y)
-    y_old_max = max(y)
+    # these numbers are from remixz on GitHub, not sure how he got them, but they work!
+    x_old_min = -120
+    x_old_max = 14870
+    y_old_min = -120
+    y_old_max = 14980
 
-    x_new_max = 270
-    x_new_min = 20
+    x_new_max = 295
+    x_new_min = 0
 
-    y_new_max = 20
-    y_new_min = 270
+    y_new_max = 0
+    y_new_min = 295
+
+    # x_new_max = 270
+    # x_new_min = 20
+    #
+    # y_new_max = 20
+    # y_new_min = 270
 
     for time_stamp in game_data:
         old_x = game_data[time_stamp].game_snap['playerStats']['7']['x']
