@@ -9,6 +9,7 @@ VOD_NAME = "DIG_CLG_G1_SEPT_1"
 def get_frames():
     video = cv2.VideoCapture(INPUT_VOD_PATH)
     # forward over to the frames you want to start reading from.
+    # manually set this, fps * time in seconds you wanna start from
     video.set(1,12200);
     success, frame = video.read()
     count = 0
