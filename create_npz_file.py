@@ -9,7 +9,7 @@ from random import shuffle
 FRAME_DIR = "/Users/flynn/Documents/DeepLeague/data/DIG_CLG_G1_SEPT_1/frames/"
 
 label_dict = {"Elise": 0, "Sejuani": 1}
-debug = False
+debug = True
 shuffle = True
 
 
@@ -38,8 +38,8 @@ def dead(frame_obj, champ_num):
 def get_bounding_boxes_and_images(game_data):
     all_boxes = []
     all_images = []
+    i = 0
     for time_stamp in game_data:
-        print(time_stamp)
         boxes_in_timestamp = []
         frame_obj = game_data[time_stamp]
         if frame_obj.frame_path is not None:
@@ -54,11 +54,9 @@ def get_bounding_boxes_and_images(game_data):
             if dead(frame_obj, '2') and dead(frame_obj, '7'):
                 continue
 
-
             # negative coordinates
             if(box[1] < 0 or box[2] < 0 or box[3] < 0 or box[4] < 0):
                 continue
-
 
             # bounding boxes
             boxes_in_timestamp.append(box)
@@ -70,9 +68,11 @@ def get_bounding_boxes_and_images(game_data):
             im = np.array(im, dtype = np.uint8)
             all_images.append(im)
 
-            if debug and len(all_images) == 10:
-                break
+            if debug:
+                if i == 20:
+                    break
 
+            i += 1
 
     return all_boxes, all_images
 
@@ -80,11 +80,9 @@ def get_bounding_boxes_and_images(game_data):
 
 if __name__ == '__main__':
     game_data = get_game_data_dict()
+    # arrange all data in to these two nice lists
     all_boxes, all_images = get_bounding_boxes_and_images(game_data)
-    print(np.asarray(all_images).shape)
-    print(np.asarray(all_boxes).shape)
-    all_images = all_images[:-200]
-    all_boxes = all_boxes[:-200]
+
     if shuffle:
         np.random.seed(13)
         indices = np.arange(len(all_images))
@@ -93,8 +91,17 @@ if __name__ == '__main__':
         np.random.shuffle(indices)
         all_images, all_boxes = all_images[indices], all_boxes[indices]
 
-
-    # test set
     print(np.asarray(all_images).shape)
     print(np.asarray(all_boxes).shape)
-    np.savez("my_dataset", images=all_images, boxes=all_boxes)
+
+    if debug:
+        # test set
+        test_set_cut = int(0.1 * len(all_images))
+        np.savez("data_training_set", images=all_images, boxes=all_boxes)
+        np.savez("data_test_set", images=all_images[-test_set_cut:], boxes=all_boxes[-test_set_cut:])
+
+        print(np.asarray(all_images).shape)
+        print(np.asarray(all_boxes).shape)
+
+        print(np.asarray(all_images[-test_set_cut:]).shape)
+        print(np.asarray(all_boxes[-test_set_cut:]).shape)
