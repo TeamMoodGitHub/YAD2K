@@ -6,9 +6,8 @@ from PIL import Image
 import numpy as np
 
 INPUT_VOD_PATH = "/Users/flynn/Documents/DeepLeague/data/CLG_P1_G_3_MARCH_3_2017/vod.mp4"
-VOD_NAME = "CLG_P1_G_3_MARCH_3_2017"
 
-vod_name_list = ['IMT_TL_G_3_MARCH_3_2017']
+vod_name_list = ['C9_FOX_G_2_MARCH_4_2017', 'CLG_TSM_G_1_MARCH_4_2017', 'CLG_TSM_G_2_MARCH_4_2017', 'DIG_P1_G_1_MARCH_4_2017', 'DIG_P1_G_2_MARCH_4_2017', 'DIG_P1_G_3_MARCH_4_2017', 'FLY_NV_G_1_MARCH_4_2017', 'FLY_NV_G_2_MARCH_4_2017', 'FLY_NV_G_3_MARCH_4_2017', ]
 
 def get_frames():
 

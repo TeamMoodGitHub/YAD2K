@@ -14,6 +14,7 @@ import os
 from PIL import Image
 from pprint import pprint
 import re
+from read_ocr_and_lolesport_data import convert_string_time_to_easy_time
 
 
 ENDPOINT_URL = 'https://vision.googleapis.com/v1/images:annotate'
@@ -21,10 +22,10 @@ RESULTS_DIR = 'jsons'
 makedirs(RESULTS_DIR, exist_ok=True)
 
 API_KEY = "AIzaSyDt5t0HpwXAidYtYA7PFGtCdPfgWclCKEQ"
-IMAGE_DIR = "/Users/flynn/Documents/DeepLeague/data/DIG_CLG_G1_SEPT_1/frames/"
-GAME_NAME = "DIG CLG SEPT 2"
 
-def make_image_data_list(image_filenames):
+BASE_DATA_PATH = "data/"
+
+def make_image_data_list(folder, image_filenames):
     """
     image_filenames is a list of filename strings
     Returns a list of dicts formatted as the Vision API
@@ -33,7 +34,7 @@ def make_image_data_list(image_filenames):
     img_requests = []
     for imgname in image_filenames:
         # load as PIL
-        img = Image.open(IMAGE_DIR + imgname).crop((900, 75, 1000, 125))
+        img = Image.open(BASE_DATA_PATH + folder + '/frames/' + imgname).crop((900, 75, 1000, 125))
         buffer_str = BytesIO()
         img.save(buffer_str, 'jpeg')
         # convert to base64 for api
@@ -47,23 +48,26 @@ def make_image_data_list(image_filenames):
         })
     return img_requests
 
-def make_image_data(image_filenames):
+def make_image_data(folder, image_filenames):
     """Returns the image data lists as bytes"""
-    imgdict = make_image_data_list(image_filenames)
+    imgdict = make_image_data_list(folder, image_filenames)
     return json.dumps({"requests": imgdict }).encode()
 
 
-def request_ocr(api_key, image_filenames):
+def request_ocr(api_key, folder, image_filenames):
     response = requests.post(ENDPOINT_URL,
-                             data=make_image_data(image_filenames),
+                             data=make_image_data(folder, image_filenames),
                              params={'key': api_key},
                              headers={'Content-Type': 'application/json'})
     return response
 
 
-def create_data_json:
+def create_data_json(folder):
     # get file paths
-    image_paths = os.listdir(IMAGE_DIR)
+    image_paths = os.listdir(BASE_DATA_PATH + folder + '/frames/')
+
+    # regex for times (see later below)
+    reg = re.compile('^[0-5]?[0-9]:[0-9][0-9]$')
 
     # only care about jpg frames.
     for file in image_paths:
@@ -72,64 +76,85 @@ def create_data_json:
 
     # sort in numerical order
     sorted_files = sorted(image_paths, key=lambda x: int(x.split('_')[1].split(".")[0]))
-    # file we will write all data to
-    outfile = open('time_stamp_data_dirty.json', 'w')
+
+    # file we will write all data too
+    outfile = open(BASE_DATA_PATH + folder +  '/time_stamp_data_dirty.json', 'w')
+    print("Created game_data json (dirty) at folder ", folder)
     outfile.write('[\n')
-    json.dump({'info': GAME_NAME}, outfile)
+    json.dump({'info': folder}, outfile)
     outfile.write(',\n')
 
-    # regex for times
-    reg = re.compile('^[0-5]?[0-9]:[0-9][0-9]$')
+    counter = 0
+    for i in range(0, len(sorted_files) - 15, 15):
+        counter = i
+    print(counter)
     # we only want to process 15 images per request to keep things organized
-    for i in range(0, len(sorted_files) - 5, 5):
-        # create list of images paths to send to api
+    for i in range(0, len(sorted_files) - 15, 15):
+        print(i)
         image_paths = []
-        for j in range(0, 5):
+        if i % 100 == 0:
+            print("On frame %d out of %d" % (i, len(sorted_files) - 15))
+
+        for j in range(0, 15):
+            # just create a list of 15 files
             image_paths.append(sorted_files[i + j])
-        print(image_paths)
-        response = request_ocr(API_KEY, image_paths)
+        print("HI ", len(image_paths))
+        response = request_ocr(API_KEY, folder, image_paths)
 
         if response.status_code != 200 or response.json().get('error'):
             print(response.text)
         else:
+            print(len(response.json()['responses']))
+            print(response.json()['responses'][-1])
+            print(i)
+            print(counter)
 
+            # TODO Really annoying problem here. Basically I need to be able to handle two cases when appending the final comma to the json
+            # 1. when i reach the END (this ones ez)
+            # 2. when i reach the last response, and the last item in the response is BAD. (ex. fails on regex)
             for idx, resp in enumerate(response.json()['responses']):
-                # save to JSON file
-                print('--------------------------------------------------')
-
                 if "textAnnotations" not in resp:
+                    print("text_ann")
                     continue
 
                 t = resp['textAnnotations'][0]
                 time = t['description'].strip()
-                imgname = sorted_files[i + idx]
-                print(imgname)
+
+                imgname = image_paths[idx]
 
                 # check if time is in the proper format
                 # lots of times you get things like pauses, or replays, and we don't want those frames.
                 if reg.match(time) is None:
+                    print("reg_ex")
                     continue
 
                 # create json objct to save data
                 obj = {'file_name': imgname, 'time': time}
-                print(t['description'])
+                # save to JSON file
                 json.dump(obj, outfile)
-                outfile.write(',\n')
-
+                print("i val ", i)
+                print("idx ", idx)
+                print("counter val ", counter)
+                # TODO make this prettier
+                if idx == 14 and i == counter:
+                    continue
+                else:
+                    print("YOOO 2")
+                    outfile.write(',\n')
 
     outfile.write(']\n')
     outfile.close()
 
-def create_clean_data_json():
-    frame_timestamp_data = json.load(open('time_stamp_data_dirty', 'r'))
-    outfile = open('time_stamp_data_clean.json', 'w')
-
+def create_clean_data_json(folder):
+    frame_timestamp_data = json.load(open(BASE_DATA_PATH + folder + '/time_stamp_data_dirty.json', 'r'))
+    outfile = open(BASE_DATA_PATH + folder + '/time_stamp_data_clean.json', 'w')
+    print("Created game_data json (clean) at folder ", folder)
     first = True
     prev_minutes = None
     outfile.write('[\n')
-    json.dump({'info': GAME_NAME}, outfile)
+    json.dump({'info': folder}, outfile)
     outfile.write(',\n')
-    for time_frame in frame_timestamp_data:
+    for i, time_frame in enumerate(frame_timestamp_data):
         # skip over first item in json
         if first:
             first = False
@@ -140,18 +165,31 @@ def create_clean_data_json():
             # check if the time difference is greater than 5 min from prev frame.
             # if so, its most likely an incorrect time returned from OCR.
             if abs(curr_minutes - prev_minutes) > 5:
-                print("BAD TIME ....", time_frame['time'])
                 continue
         prev_minutes = curr_minutes
         json.dump(time_frame, outfile)
-        outfile.write(',\n')
+
+        if i == len(frame_timestamp_data) - 1:
+            continue
+        else:
+            outfile.write(',\n')
 
     outfile.write(']\n')
     outfile.close()
 
 if __name__ == '__main__':
-    # creates a "dirty" json file
-    create_data_json()
-    # creates a "clean" json file where i remove some time stamps that don't make sense
-    # i create two versions in case i find a bug later with my "clean" code
-    create_clean_data_json()
+    folders = []
+    for folder_name in os.listdir(BASE_DATA_PATH):
+        if os.path.isdir(BASE_DATA_PATH + folder_name):
+            items =  os.listdir('data/' + folder_name)
+            if ('time_stamp_data' not in str(items)):
+                print("No time_stamp_data file in folder ", folder_name)
+                folders.append(folder_name)
+
+    for folder in folders:
+        # creates a "dirty" json file
+        create_data_json(folder)
+
+        # creates a "clean" json file where i remove some time stamps that don't make sense
+        # i create two versions in case i find a bug later with my "clean" code
+        create_clean_data_json(folder)
