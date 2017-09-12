@@ -45,10 +45,20 @@ YOLO_ANCHORS = np.array(
      (7.88282, 3.52778), (9.77052, 9.16828)))
 
 
+debug = False
+
 BATCH_SIZE_1 = 32
 BATCH_SIZE_2 = 8
+EPOCHS_1 = 5
+EPOCHS_2 = 30
+EPOCHS_3 = 30
 
-debug = False
+if debug:
+    BATCH_SIZE_1 = 2
+    BATCH_SIZE_2 = 2
+    EPOCHS_1 = 1
+    EPOCHS_2 = 1
+    EPOCHS_3 = 1
 
 class TrainingData:
     def __init__(self, npz_file):
@@ -325,7 +335,7 @@ def train(model, class_names, anchors, data):
     print("Training on %d images " % len(data.train_images))
     model.fit_generator(data.load_train_batch(BATCH_SIZE_1),
               steps_per_epoch=data.get_train_steps(BATCH_SIZE_1),
-              epochs=5, #epochs=5,
+              epochs=EPOCHS_1, #epochs=5,
               validation_data=data.load_val_batch(BATCH_SIZE_1),
               validation_steps=data.get_val_steps(BATCH_SIZE_1),
               callbacks=[logging])
@@ -344,7 +354,7 @@ def train(model, class_names, anchors, data):
 
     model.fit_generator(data.load_train_batch(BATCH_SIZE_1),
               steps_per_epoch=data.get_train_steps(BATCH_SIZE_1),
-              epochs=30,
+              epochs=EPOCHS_2,
               validation_data=data.load_val_batch(BATCH_SIZE_1),
               validation_steps=data.get_val_steps(BATCH_SIZE_1),
               callbacks=[logging])
@@ -354,7 +364,7 @@ def train(model, class_names, anchors, data):
     # yad2k calls for smaller batches here
     model.fit_generator(data.load_train_batch(BATCH_SIZE_2),
               steps_per_epoch=data.get_train_steps(BATCH_SIZE_2),
-              epochs=30,
+              epochs=EPOCHS_3,
               validation_data=data.load_val_batch(BATCH_SIZE_2),
               validation_steps=data.get_val_steps(BATCH_SIZE_2),
               callbacks=[logging, checkpoint, early_stopping])
