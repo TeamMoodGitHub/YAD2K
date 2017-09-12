@@ -4,7 +4,7 @@ This is a script that can be used to retrain the YOLOv2 model for your own datas
 import argparse
 
 import os
-
+import sys
 import matplotlib.pyplot as plt
 import numpy as np
 import PIL
@@ -26,7 +26,7 @@ argparser.add_argument(
     '-d',
     '--data_path',
     help="path to numpy data file (.npz) containing np.object array 'boxes' and np.uint8 array 'images'",
-    default=os.path.join('..', 'DATA', 'underwater_data.npz'))
+    default=os.path.join('data', 'data_training_set.npz'))
 
 argparser.add_argument(
     '-a',
@@ -38,12 +38,48 @@ argparser.add_argument(
     '-c',
     '--classes_path',
     help='path to classes file, defaults to pascal_classes.txt',
-    default=os.path.join('..', 'DATA', 'underwater_classes.txt'))
+    default=os.path.join('model_data', 'league_classes.txt'))
 
-# Default anchor boxes
 YOLO_ANCHORS = np.array(
     ((0.57273, 0.677385), (1.87446, 2.06253), (3.33843, 5.47434),
      (7.88282, 3.52778), (9.77052, 9.16828)))
+
+class TrainingData:
+    def __init__(self, npz_file):
+        images = npz_file['images']
+        boxes = npz_file['boxes']
+
+        # pointers to handle all our batches
+        self.train_batch_pointer = 0
+        self.val_batch_pointer = 0
+
+        # set up all the images
+        self.train_images = images[:int(len(images) * 0.9)]
+        self.train_boxes = boxes[:int(len(images) * 0.9)]
+        self.val_images = images[-int(len(images) * 0.1):]
+        self.val_boxes = boxes[-int(len(images) * 0.1):]
+
+    def load_train_batch(self, batch_size):
+        # fix pointers if they extend to far!
+        while True:
+            if self.train_batch_pointer + batch_size > len(self.train_images):
+                self.train_batch_pointer = 0
+
+            initial_index = self.train_batch_pointer
+            end_index = self.train_batch_pointer + batch_size
+            print("Loading images/boxes from index %d to %d " % (initial_index, end_index))
+            images_to_process = self.train_images[initial_index:end_index]
+            boxes_to_process = self.train_boxes[initial_index:end_index]
+            # processed
+            p_images, p_boxes = process_data(images_to_process, boxes_to_process)
+            detectors_mask, matching_true_boxes = get_detector_mask(p_boxes, YOLO_ANCHORS)
+
+            self.train_batch_pointer += batch_size
+            print("p_images ", p_images)
+            print("p_images ", p_boxes)
+            print("detectors_mask ", detectors_mask)
+            print("matching_true_boxes ", matching_true_boxes)
+            yield [p_images, p_boxes, detectors_mask, matching_true_boxes],  np.zeros(len(p_images))
 
 def _main(args):
     data_path = os.path.expanduser(args.data_path)
@@ -53,15 +89,15 @@ def _main(args):
     class_names = get_classes(classes_path)
     anchors = get_anchors(anchors_path)
 
-    data = np.load(data_path) # custom data saved as a numpy file.
+    data = (np.load(data_path)) # custom data saved as a numpy file.
     #  has 2 arrays: an object array 'boxes' (variable length of boxes in each image)
     #  and an array of images 'images'
 
-    image_data, boxes = process_data(data['images'], data['boxes'])
+    # image_data, boxes = process_data(data['images'], data['boxes'])
 
     anchors = YOLO_ANCHORS
 
-    detectors_mask, matching_true_boxes = get_detector_mask(boxes, anchors)
+    # detectors_mask, matching_true_boxes = get_detector_mask(boxes, anchors)
 
     model_body, model = create_model(anchors, class_names)
 
@@ -69,10 +105,11 @@ def _main(args):
         model,
         class_names,
         anchors,
-        image_data,
-        boxes,
-        detectors_mask,
-        matching_true_boxes
+        data,
+        # image_data,
+        # boxes,
+        # detectors_mask,
+        # matching_true_boxes
     )
 
     draw(model_body,
@@ -227,7 +264,7 @@ def create_model(anchors, class_names, load_pretrained=True, freeze_body=True):
 
     return model_body, model
 
-def train(model, class_names, anchors, image_data, boxes, detectors_mask, matching_true_boxes, validation_split=0.1):
+def train(model, class_names, anchors, data, image_data=None, boxes=None, detectors_mask=None, matching_true_boxes=None, validation_split=0.1):
     '''
     retrain/fine-tune the model
 
@@ -248,14 +285,14 @@ def train(model, class_names, anchors, image_data, boxes, detectors_mask, matchi
                                  save_weights_only=True, save_best_only=True)
     early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=15, verbose=1, mode='auto')
 
-    model.fit([image_data, boxes, detectors_mask, matching_true_boxes],
-              np.zeros(len(image_data)),
-              validation_split=validation_split,
-              batch_size=32,
-              epochs=5,
-              callbacks=[logging])
-    model.save_weights('trained_stage_1.h5')
+    train_obj = TrainingData(data)
 
+    model.fit_generator(train_obj.load_train_batch(2),
+              steps_per_epoch=1,
+              epochs=5)
+
+    model.save_weights('trained_stage_1.h5')
+    print("Saved!")
     model_body, model = create_model(anchors, class_names, load_pretrained=False, freeze_body=False)
 
     model.load_weights('trained_stage_1.h5')
@@ -337,7 +374,6 @@ def draw(model_body, class_names, anchors, image_data, image_set='val',
         # To display (pauses the program):
         # plt.imshow(image_with_boxes, interpolation='nearest')
         # plt.show()
-
 
 
 if __name__ == '__main__':

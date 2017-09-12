@@ -41,5 +41,5 @@ class TrainingData:
 if __name__ == '__main__':
     a = TrainingData(np.load('/Users/flynn/Documents/DeepLeague/data_training_set.npz'))
     a.load_train_batch(32)
-    a.load_train_batch(32)
+    next(a.load_train_batch(32))
     a.load_train_batch(32)
