@@ -23,23 +23,19 @@ class EasyTime:
         self.seconds = seconds
         self.time_as_string = "%01d:%02d" % (minutes, seconds)
 
-LOL_ESPORT_JSON = "/Users/flynn/Documents/DeepLeague/data/DIG_CLG_G1_SEPT_1/game_1.json"
-TIMESTAMP_JSON = "/Users/flynn/Documents/DeepLeague/data/DIG_CLG_G1_SEPT_1/time_stamp_data_clean.json"
-FRAME_DIR = "/Users/flynn/Documents/DeepLeague/data/DIG_CLG_G1_SEPT_1/frames/"
+BASE_DATA_PATH = 'data/'
 
-
-champs_to_look_for = ['2', '7']
-
-def get_game_data_dict():
-    game_data = create_data()
+# pass it in the name of the folder with all the data for that specific game
+def get_game_data_dict(folder):
+    game_data = create_data(folder)
     rescale_coordinates(game_data)
     remove_dead_times(game_data)
     return game_data
 
-def create_data():
+def create_data(folder):
     # first load in lolesport JSON data. all we want is one time stamp at a time.
-    full_game_data = json.load(open(LOL_ESPORT_JSON, 'r'))
-    frame_timestamp_data = json.load(open(TIMESTAMP_JSON, 'r'))
+    full_game_data = json.load(open(BASE_DATA_PATH + folder + '/socket.json', 'r'))
+    frame_timestamp_data = json.load(open(BASE_DATA_PATH + folder + '/time_stamp_data_clean.json', 'r'))
 
     # we want to match the data from the lolesports json with the data from the OCR via timestamps
     new_full_game_data = {}
@@ -99,38 +95,31 @@ def rescale_coordinates(game_data):
 
     # got these by trial and error. they just "shrink" down the map by 5 px on each side.
     # helps cut some of the edges off.
-
     x_new_max = 290
     x_new_min = 5
 
     y_new_max = 5
     y_new_min = 290
 
-    for champ_num in champs_to_look_for:
+    for i in range(1, 11):
         for time_stamp in game_data:
-            old_x = game_data[time_stamp].game_snap['playerStats'][champ_num]['x']
-            old_y = game_data[time_stamp].game_snap['playerStats'][champ_num]['y']
-
-            game_data[time_stamp].game_snap['playerStats'][champ_num]['x'] = (((old_x - x_old_min) * (x_new_max - x_new_min)) / (x_old_max - x_old_min)) + x_new_min
-            game_data[time_stamp].game_snap['playerStats'][champ_num]['y'] = (((old_y - y_old_min) * (y_new_max - y_new_min)) / (y_old_max - y_old_min)) + y_new_min
+            old_x = game_data[time_stamp].game_snap['playerStats'][str(i)]['x']
+            old_y = game_data[time_stamp].game_snap['playerStats'][str(i)]['y']
+            game_data[time_stamp].game_snap['playerStats'][str(i)]['x'] = (((old_x - x_old_min) * (x_new_max - x_new_min)) / (x_old_max - x_old_min)) + x_new_min
+            game_data[time_stamp].game_snap['playerStats'][str(i)]['y'] = (((old_y - y_old_min) * (y_new_max - y_new_min)) / (y_old_max - y_old_min)) + y_new_min
 
     return game_data
 
-# we want to remove the frames where the champs is dead, but still has a position
-# this is useless data because it doesn't show the champs image on the minimap when the champ's dead
-# TODO
-# what i do is set the champs x and y to 0, 0 if they are dead
-# this way i can handle it as a special case later
+# we don't want the champ bounding box to be used if its dead!
 def remove_dead_times(game_data):
     keys_to_remove = []
-    for champ_num in champs_to_look_for:
+    for i in range(1, 11):
         for time_stamp in game_data:
-            hp = game_data[time_stamp].game_snap['playerStats'][champ_num]['h']
+            hp = game_data[time_stamp].game_snap['playerStats'][str(i)]['h']
             # dead when HP is 0
             if hp == 0:
-                print("%s dead at %s" %(champ_num, time_stamp))
-                game_data[time_stamp].game_snap['playerStats'][champ_num]['x'] = 0
-                game_data[time_stamp].game_snap['playerStats'][champ_num]['y'] = 0
+                game_data[time_stamp].game_snap['playerStats'][str(i)]['x'] = 0
+                game_data[time_stamp].game_snap['playerStats'][str(i)]['y'] = 0
 
 if __name__ == "__main__":
     get_game_data_dict()

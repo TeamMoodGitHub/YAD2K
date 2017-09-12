@@ -2,7 +2,6 @@
 # i use a simple lamda fucntion for this
 import os
 
-
 def sort_files_numerically(full_path_to_files):
     files = os.listdir(path_to_files)
 
