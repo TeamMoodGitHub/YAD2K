@@ -334,6 +334,7 @@ def train(model, class_names, anchors, data):
               epochs=EPOCHS_1,
               validation_data=data.load_val_batch(BATCH_SIZE_1),
               validation_steps=data.get_val_steps(BATCH_SIZE_1),
+              max_queue_size = 2,
               callbacks=[logging])
 
     model.save_weights('trained_stage_1.h5')
@@ -353,6 +354,7 @@ def train(model, class_names, anchors, data):
               epochs=EPOCHS_2,
               validation_data=data.load_val_batch(BATCH_SIZE_1),
               validation_steps=data.get_val_steps(BATCH_SIZE_1),
+              max_queue_size = 2,
               callbacks=[logging])
 
     model.save_weights('trained_stage_2.h5')
@@ -363,6 +365,7 @@ def train(model, class_names, anchors, data):
               epochs=EPOCHS_3,
               validation_data=data.load_val_batch(BATCH_SIZE_2),
               validation_steps=data.get_val_steps(BATCH_SIZE_2),
+              max_queue_size = 2,
               callbacks=[logging, checkpoint, early_stopping])
 
     model.save_weights('trained_stage_3.h5')
