@@ -44,6 +44,12 @@ YOLO_ANCHORS = np.array(
     ((0.57273, 0.677385), (1.87446, 2.06253), (3.33843, 5.47434),
      (7.88282, 3.52778), (9.77052, 9.16828)))
 
+
+BATCH_SIZE_1 = 32
+BATCH_SIZE_2 = 8
+
+debug = False
+
 class TrainingData:
     def __init__(self, npz_file):
         images = npz_file['images']
@@ -59,9 +65,16 @@ class TrainingData:
         self.val_images = images[-int(len(images) * 0.1):]
         self.val_boxes = boxes[-int(len(images) * 0.1):]
 
+        # set up all the images
+        if debug:
+            self.train_images = images[:11]
+            self.train_boxes = boxes[:11]
+            self.val_images = images[-11:]
+            self.val_boxes = boxes[-11:]
+
     def load_train_batch(self, batch_size):
-        # fix pointers if they extend to far!
         while True:
+            # fix pointers if they extend to far!
             if self.train_batch_pointer + batch_size > len(self.train_images):
                 self.train_batch_pointer = 0
 
@@ -75,11 +88,36 @@ class TrainingData:
             detectors_mask, matching_true_boxes = get_detector_mask(p_boxes, YOLO_ANCHORS)
 
             self.train_batch_pointer += batch_size
-            print("p_images ", p_images)
-            print("p_images ", p_boxes)
-            print("detectors_mask ", detectors_mask)
-            print("matching_true_boxes ", matching_true_boxes)
             yield [p_images, p_boxes, detectors_mask, matching_true_boxes],  np.zeros(len(p_images))
+
+    def load_val_batch(self, batch_size):
+        while True:
+            # fix pointers if they extend to far!
+            if self.val_batch_pointer + batch_size > len(self.val_images):
+                self.val_batch_pointer = 0
+
+            initial_index = self.val_batch_pointer
+            end_index = self.val_batch_pointer + batch_size
+            print("Loading images/boxes from index %d to %d " % (initial_index, end_index))
+            images_to_process = self.val_images[initial_index:end_index]
+            boxes_to_process = self.val_boxes[initial_index:end_index]
+            # processed
+            p_images, p_boxes = process_data(images_to_process, boxes_to_process)
+            detectors_mask, matching_true_boxes = get_detector_mask(p_boxes, YOLO_ANCHORS)
+
+            self.val_batch_pointer += batch_size
+            yield [p_images, p_boxes, detectors_mask, matching_true_boxes],  np.zeros(len(p_images))
+
+    # total number of batches to run for one epoch
+    def get_train_steps(self, batch_size):
+        print("Training steps... ", int(len(self.train_images) / batch_size))
+        return int(len(self.train_images) / batch_size)
+
+    # total number of batches to run for validation
+    def get_val_steps(self, batch_size):
+        print("Val steps... ", int(len(self.val_images) / batch_size))
+        return int(len(self.val_images) / batch_size)
+
 
 def _main(args):
     data_path = os.path.expanduser(args.data_path)
@@ -89,33 +127,32 @@ def _main(args):
     class_names = get_classes(classes_path)
     anchors = get_anchors(anchors_path)
 
-    data = (np.load(data_path)) # custom data saved as a numpy file.
-    #  has 2 arrays: an object array 'boxes' (variable length of boxes in each image)
-    #  and an array of images 'images'
-
-    # image_data, boxes = process_data(data['images'], data['boxes'])
+    # custom data saved as a numpy file.
+    data = (np.load(data_path))
+    # easy class to handle all the data
+    data = TrainingData(data)
 
     anchors = YOLO_ANCHORS
-
-    # detectors_mask, matching_true_boxes = get_detector_mask(boxes, anchors)
-
     model_body, model = create_model(anchors, class_names)
 
     train(
         model,
         class_names,
         anchors,
-        data,
-        # image_data,
-        # boxes,
-        # detectors_mask,
-        # matching_true_boxes
+        data
     )
 
+    # here i just pass in the val set of images
+    images = None
+    boxes = None
+
+    images, boxes = process_data(data.val_images[0:100], data.val_boxes[0:100])
+    if debug:
+        images, boxes = process_data(data.val_images[0:10], data.val_boxes[0:10])
     draw(model_body,
         class_names,
         anchors,
-        image_data,
+        images,
         image_set='val', # assumes training/validation split is 0.9
         weights_name='trained_stage_3_best.h5',
         save_all=False)
@@ -264,7 +301,7 @@ def create_model(anchors, class_names, load_pretrained=True, freeze_body=True):
 
     return model_body, model
 
-def train(model, class_names, anchors, data, image_data=None, boxes=None, detectors_mask=None, matching_true_boxes=None, validation_split=0.1):
+def train(model, class_names, anchors, data):
     '''
     retrain/fine-tune the model
 
@@ -285,14 +322,17 @@ def train(model, class_names, anchors, data, image_data=None, boxes=None, detect
                                  save_weights_only=True, save_best_only=True)
     early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=15, verbose=1, mode='auto')
 
-    train_obj = TrainingData(data)
-
-    model.fit_generator(train_obj.load_train_batch(2),
-              steps_per_epoch=1,
-              epochs=5)
+    print("Training on %d images " % len(data.train_images))
+    model.fit_generator(data.load_train_batch(BATCH_SIZE_1),
+              steps_per_epoch=data.get_train_steps(BATCH_SIZE_1),
+              epochs=5, #epochs=5,
+              validation_data=data.load_val_batch(BATCH_SIZE_1),
+              validation_steps=data.get_val_steps(BATCH_SIZE_1),
+              callbacks=[logging])
 
     model.save_weights('trained_stage_1.h5')
     print("Saved!")
+
     model_body, model = create_model(anchors, class_names, load_pretrained=False, freeze_body=False)
 
     model.load_weights('trained_stage_1.h5')
@@ -302,21 +342,21 @@ def train(model, class_names, anchors, data, image_data=None, boxes=None, detect
             'yolo_loss': lambda y_true, y_pred: y_pred
         })  # This is a hack to use the custom loss function in the last layer.
 
-
-    model.fit([image_data, boxes, detectors_mask, matching_true_boxes],
-              np.zeros(len(image_data)),
-              validation_split=0.1,
-              batch_size=8,
+    model.fit_generator(data.load_train_batch(BATCH_SIZE_1),
+              steps_per_epoch=data.get_train_steps(BATCH_SIZE_1),
               epochs=30,
+              validation_data=data.load_val_batch(BATCH_SIZE_1),
+              validation_steps=data.get_val_steps(BATCH_SIZE_1),
               callbacks=[logging])
 
     model.save_weights('trained_stage_2.h5')
 
-    model.fit([image_data, boxes, detectors_mask, matching_true_boxes],
-              np.zeros(len(image_data)),
-              validation_split=0.1,
-              batch_size=8,
+    # yad2k calls for smaller batches here
+    model.fit_generator(data.load_train_batch(BATCH_SIZE_2),
+              steps_per_epoch=data.get_train_steps(BATCH_SIZE_2),
               epochs=30,
+              validation_data=data.load_val_batch(BATCH_SIZE_2),
+              validation_steps=data.get_val_steps(BATCH_SIZE_2),
               callbacks=[logging, checkpoint, early_stopping])
 
     model.save_weights('trained_stage_3.h5')
