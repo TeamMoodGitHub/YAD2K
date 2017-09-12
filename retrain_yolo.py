@@ -90,7 +90,6 @@ class TrainingData:
 
             initial_index = self.train_batch_pointer
             end_index = self.train_batch_pointer + batch_size
-            print("Loading images/boxes from index %d to %d " % (initial_index, end_index))
             images_to_process = self.train_images[initial_index:end_index]
             boxes_to_process = self.train_boxes[initial_index:end_index]
             # processed
@@ -108,7 +107,6 @@ class TrainingData:
 
             initial_index = self.val_batch_pointer
             end_index = self.val_batch_pointer + batch_size
-            print("Loading images/boxes from index %d to %d " % (initial_index, end_index))
             images_to_process = self.val_images[initial_index:end_index]
             boxes_to_process = self.val_boxes[initial_index:end_index]
             # processed
@@ -120,12 +118,10 @@ class TrainingData:
 
     # total number of batches to run for one epoch
     def get_train_steps(self, batch_size):
-        print("Training steps... ", int(len(self.train_images) / batch_size))
         return int(len(self.train_images) / batch_size)
 
     # total number of batches to run for validation
     def get_val_steps(self, batch_size):
-        print("Val steps... ", int(len(self.val_images) / batch_size))
         return int(len(self.val_images) / batch_size)
 
 
@@ -156,7 +152,7 @@ def _main(args):
     images = None
     boxes = None
 
-    images, boxes = process_data(data.val_images[0:100], data.val_boxes[0:100])
+    images, boxes = process_data(data.val_images[0:500], data.val_boxes[0:500])
     if debug:
         images, boxes = process_data(data.val_images[0:10], data.val_boxes[0:10])
     draw(model_body,
@@ -335,7 +331,7 @@ def train(model, class_names, anchors, data):
     print("Training on %d images " % len(data.train_images))
     model.fit_generator(data.load_train_batch(BATCH_SIZE_1),
               steps_per_epoch=data.get_train_steps(BATCH_SIZE_1),
-              epochs=EPOCHS_1, #epochs=5,
+              epochs=EPOCHS_1,
               validation_data=data.load_val_batch(BATCH_SIZE_1),
               validation_steps=data.get_val_steps(BATCH_SIZE_1),
               callbacks=[logging])
