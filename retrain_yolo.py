@@ -328,14 +328,14 @@ def train(model, class_names, anchors, data):
                                  save_weights_only=True, save_best_only=True)
     early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=15, verbose=1, mode='auto')
 
-    print("Training on %d images " % len(data.train_images))
-    model.fit_generator(data.load_train_batch(BATCH_SIZE_1),
-              steps_per_epoch=data.get_train_steps(BATCH_SIZE_1),
-              epochs=EPOCHS_1,
-              validation_data=data.load_val_batch(BATCH_SIZE_1),
-              validation_steps=data.get_val_steps(BATCH_SIZE_1),
-              max_queue_size = 2,
-              callbacks=[logging])
+    # print("Training on %d images " % len(data.train_images))
+    # model.fit_generator(data.load_train_batch(BATCH_SIZE_1),
+    #           steps_per_epoch=data.get_train_steps(BATCH_SIZE_1),
+    #           epochs=EPOCHS_1,
+    #           validation_data=data.load_val_batch(BATCH_SIZE_1),
+    #           validation_steps=data.get_val_steps(BATCH_SIZE_1),
+    #           max_queue_size = 2,
+    #           callbacks=[logging])
 
     model.save_weights('trained_stage_1.h5')
     print("Saved!")
