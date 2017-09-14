@@ -13,6 +13,8 @@ from PIL import Image, ImageDraw, ImageFont
 
 from yad2k.models.keras_yolo import yolo_eval, yolo_head
 
+from retrain_yolo import create_model
+
 parser = argparse.ArgumentParser(
     description='Run a YOLO_v2 style detection model on test images..')
 parser.add_argument(
@@ -28,7 +30,7 @@ parser.add_argument(
     '-c',
     '--classes_path',
     help='path to classes file, defaults to coco_classes.txt',
-    default='model_data/coco_classes.txt')
+    default='model_data/league_classes.txt')
 parser.add_argument(
     '-t',
     '--test_path',
@@ -76,7 +78,9 @@ def _main(args):
         anchors = [float(x) for x in anchors.split(',')]
         anchors = np.array(anchors).reshape(-1, 2)
 
-    yolo_model = load_model(model_path)
+    # yolo_model = load_model(model_path)
+    yolo_model, _ = create_model(anchors, class_names)
+    yolo_model.load_weights('trained_stage_3_best.h5')
 
     # Verify model, anchors, and classes are compatible
     num_classes = len(class_names)
@@ -114,15 +118,12 @@ def _main(args):
         score_threshold=args.score_threshold,
         iou_threshold=args.iou_threshold)
 
-    for image_file in os.listdir(test_path):
-        try:
-            image_type = imghdr.what(os.path.join(test_path, image_file))
-            if not image_type:
-                continue
-        except IsADirectoryError:
-            continue
 
-        image = Image.open(os.path.join(test_path, image_file))
+    npz_obj = np.load('data/data_test_set.npz')
+    images = npz_obj['images']
+
+    for image_index, image_arr in enumerate(images):
+        image = Image.fromarray(image_arr)
         if is_fixed_size:  # TODO: When resizing we can use minibatch input.
             resized_image = image.resize(
                 tuple(reversed(model_image_size)), Image.BICUBIC)
@@ -146,7 +147,7 @@ def _main(args):
                 input_image_shape: [image.size[1], image.size[0]],
                 K.learning_phase(): 0
             })
-        print('Found {} boxes for {}'.format(len(out_boxes), image_file))
+        print('Found {} boxes for {}'.format(len(out_boxes), image_index))
 
         font = ImageFont.truetype(
             font='font/FiraMono-Medium.otf',
@@ -186,7 +187,7 @@ def _main(args):
             draw.text(text_origin, label, fill=(0, 0, 0), font=font)
             del draw
 
-        image.save(os.path.join(output_path, image_file), quality=90)
+        image.save(os.path.join(output_path, str(image_index)+'.jpg'), quality=90)
     sess.close()
 
 

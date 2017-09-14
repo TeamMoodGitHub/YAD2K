@@ -349,11 +349,12 @@ def train(model, class_names, anchors, data):
             'yolo_loss': lambda y_true, y_pred: y_pred
         })  # This is a hack to use the custom loss function in the last layer.
 
-    model.fit_generator(data.load_train_batch(BATCH_SIZE_1),
-              steps_per_epoch=data.get_train_steps(BATCH_SIZE_1),
+    print("Running second....")
+    model.fit_generator(data.load_train_batch(BATCH_SIZE_2),
+              steps_per_epoch=data.get_train_steps(BATCH_SIZE_2),
               epochs=EPOCHS_2,
-              validation_data=data.load_val_batch(BATCH_SIZE_1),
-              validation_steps=data.get_val_steps(BATCH_SIZE_1),
+              validation_data=data.load_val_batch(BATCH_SIZE_2),
+              validation_steps=data.get_val_steps(BATCH_SIZE_2),
               max_queue_size = 2,
               callbacks=[logging])
 
