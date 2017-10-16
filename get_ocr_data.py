@@ -23,11 +23,11 @@ RESULTS_DIR = 'jsons'
 makedirs(RESULTS_DIR, exist_ok=True)
 
 
-API_KEY = "AIzaSyDt5t0HpwXAidYtYA7PFGtCdPfgWclCKEQ"
+API_KEY = "AIzaSyDhMnEGLQI74ecnXkpxzASuodml2KSTJSw"
 
 BASE_DATA_PATH = '/Volumes/DATA/data/data/'
 
-ocr_counter = 122940
+ocr_counter = 0
 def make_image_data_list(folder, image_filenames):
     """
     image_filenames is a list of filename strings
