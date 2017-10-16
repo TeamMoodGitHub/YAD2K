@@ -4,16 +4,27 @@
 import cv2
 from PIL import Image
 import numpy as np
+import os
 
-INPUT_VOD_PATH = "/Users/flynn/Documents/DeepLeague/data/CLG_P1_G_3_MARCH_3_2017/vod.mp4"
-
-vod_name_list = ['C9_FOX_G_2_MARCH_4_2017', 'CLG_TSM_G_1_MARCH_4_2017', 'CLG_TSM_G_2_MARCH_4_2017', 'DIG_P1_G_1_MARCH_4_2017', 'DIG_P1_G_2_MARCH_4_2017', 'DIG_P1_G_3_MARCH_4_2017', 'FLY_NV_G_1_MARCH_4_2017', 'FLY_NV_G_2_MARCH_4_2017', 'FLY_NV_G_3_MARCH_4_2017', ]
+BASE_DATA_PATH = '/Volumes/DATA/data/data/'
 
 def get_frames():
+    for folder in os.listdir(BASE_DATA_PATH):
+        print("Currently on ", folder)
+        if os.path.isdir(BASE_DATA_PATH + folder):
+            items = os.listdir(BASE_DATA_PATH + folder)
+            if 'frames' not in items:
+                print("Creating frames dir... ")
+                os.mkdir(BASE_DATA_PATH + folder + '/frames')
+            # skip if frames are already done for that folder
+            else:
+                print("Frames already exists. skipping...")
+                continue
+        # skip non-folders
+        else:
+            continue
+        video = cv2.VideoCapture(BASE_DATA_PATH + '%s/vod.mp4' % folder)
 
-    for file_path in vod_name_list:
-        video = cv2.VideoCapture('data/%s/vod.mp4' % file_path)
-        print("Currently on ", file_path)
         # forward over to the frames you want to start reading from.
         # manually set this, fps * time in seconds you wanna start from
         video.set(1, 0);
@@ -36,15 +47,14 @@ def get_frames():
             # i think anymore than 2 FPS leads to to much repeat data.
             if count %  fps == 0:
                 im = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                im = Image.fromarray(frame)
+                im = Image.fromarray(frame)#.crop((1625, 785, 1920, 1080))
                 im = np.array(im, dtype = np.uint8)
-                cv2.imwrite("data/%s/frames/frame_%d.jpg" %  (file_path, file_count), im)
+                cv2.imwrite(BASE_DATA_PATH + "/%s/frames/frame_%d.jpg" %  (folder, file_count), im)
                 file_count += 1
             count += 1
 
         print("Saved %d frames" % (file_count) )
         video.release()
-
 
 if __name__ == "__main__":
     get_frames()

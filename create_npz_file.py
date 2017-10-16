@@ -77,9 +77,9 @@ def get_bounding_boxes_and_images(game_data, folder):
             all_boxes.append(np.array(boxes))
 
             # image work
-            im = Image.open(BASE_DATA_PATH + folder + '/frames/' + frame_obj.frame_path).crop((1625, 785, 1920, 1080))
-            im = np.array(im, dtype = np.uint8)
-            all_images.append(im)
+            # im = Image.open(BASE_DATA_PATH + folder + '/frames/' + frame_obj.frame_path).crop((1625, 785, 1920, 1080))
+            # im = np.array(im, dtype = np.uint8)
+            # all_images.append(im)
 
             if debug:
                 if counter == 10:
@@ -104,6 +104,8 @@ if __name__ == '__main__':
             print("Appending %d images " % len(images))
             all_boxes.extend(boxes)
             all_images.extend(images)
+
+    print("Length of boxes arr ", len(all_boxes))
 
     if shuffle:
         np.random.seed(13)

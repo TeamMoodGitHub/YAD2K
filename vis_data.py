@@ -10,9 +10,12 @@ def visualize_game_data(game_data, folder):
         # not all frame objs have actual frames asscoiated with them!
         if frame_obj.frame_path is not None:
             print("%s .... %s" % (frame_obj.time_obj.time_as_string, frame_obj.frame_path))
-            x_val = int(frame_obj.game_snap['playerStats']['7']['x'])
-            y_val = int(frame_obj.game_snap['playerStats']['7']['y'])
 
+            x_val = int(frame_obj.game_snap['playerStats']['10']['x'])
+            y_val = int(frame_obj.game_snap['playerStats']['10']['y'])
+            print("X... ", x_val)
+            print("Y.... ", y_val)
+            
             x_val_2 = int(frame_obj.game_snap['playerStats']['2']['x'])
             y_val_2 = int(frame_obj.game_snap['playerStats']['2']['y'])
 
@@ -52,6 +55,6 @@ def visualize_npz_data(npz_file_path):
 if __name__ == "__main__":
     # at this point, game_data has a dict of frame objects with a frame_path IF one was found for it.
     # game data's keys are in order of game time.
-    # game_data = get_game_data_dict('C9_FOX_G_2_MARCH_4_2017')
-    # visualize_game_data(game_data, 'C9_FOX_G_2_MARCH_4_2017')
-    visualize_npz_data('data_training_set.npz')
+    game_data = get_game_data_dict('DIG_P1_G_3_MARCH_4_2017')
+    visualize_game_data(game_data, 'DIG_P1_G_3_MARCH_4_2017')
+    # visualize_npz_data('data_training_set.npz')
