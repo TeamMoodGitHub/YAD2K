@@ -61,32 +61,74 @@ if debug:
     EPOCHS_3 = 1
 
 class TrainingData:
-    def __init__(self, npz_file):
-        images = npz_file['images']
-        boxes = npz_file['boxes']
+    # the dataset is broken up in to "clusters"
+    # these are npz files with 20 games worth of data.
+    # its not ecnomical to load the entire dataset into one npz files
+    # our pc would most likely run of ram to allocate for the massive file.
+    #
+    # all_npz_files_clusters is a list paths to all the npz clusters.
+    # i load these in on a need basis.
+    def __init__(self, all_train_npz_clusters, all_val_npz_clusters):
 
-        # pointers to handle all our batches
+        # set up our clusters
+        self.all_train_npz_clusters = all_train_npz_clusters
+        self.all_val_npz_clusters = all_val_npz_clusters
+
+        # keep track of which training cluster we have loaded
+        self.curr_train_npz_cluster = np.load(all_train_npz_clusters[0])
+        self.train_cluster_index = 0
+
+        # keep track of which validation cluster we have loaded
+        self.curr_val_npz_cluster = np.load(all_val_npz_clusters[0])
+        self.val_cluster_index = 0
+
+        # 90% of images are training, 10% are validation.
+        # images and boxes will simply point to the images of the cluster we are currently on
+        self.train_images = self.curr_train_npz_cluster['images']
+        self.train_boxes = self.curr_train_npz_cluster['boxes']
+
+        # set up validationas images/boxes well.
+        self.val_images = self.curr_val_npz_cluster['images']
+        self.val_boxes = self.curr_val_npz_cluster['boxes']
+
+        # pointers to handle the images within our batch
         self.train_batch_pointer = 0
         self.val_batch_pointer = 0
 
-        # set up all the images
-        self.train_images = images[:int(len(images) * 0.9)]
-        self.train_boxes = boxes[:int(len(images) * 0.9)]
-        self.val_images = images[-int(len(images) * 0.1):]
-        self.val_boxes = boxes[-int(len(images) * 0.1):]
 
-        # set up all the images
-        if debug:
-            self.train_images = images[:11]
-            self.train_boxes = boxes[:11]
-            self.val_images = images[-11:]
-            self.val_boxes = boxes[-11:]
+        # # set up all the images
+        # if debug:
+        #     self.train_images = images[:11]
+        #     self.train_boxes = boxes[:11]
+        #     self.val_images = images[-11:]
+        #     self.val_boxes = boxes[-11:]
+
+
+    def load_train_cluster(self):
+        # first figure out which cluster we're moving to
+        # mod length of all_train_npz_clusters keeps us in range
+        self.train_cluster_index = (self.train_cluster_index + 1) % len(all_train_npz_clusters)
+        # then load it
+        self.curr_train_npz_cluster = np.load(all_train_npz_clusters[self.train_cluster_index])
+        # then append proper images/boxes
+        self.train_images = self.curr_train_npz_cluster['images']
+        self.train_boxes = self.curr_train_npz_cluster['boxes']
+        # finally, reset training pointer
+        self.train_batch_pointer = 0
+
+    # do same thing for val as done above for val clusters
+    def load_val_cluster(self):
+        self.val_cluster_index = (self.val_cluster_index + 1) % len(all_val_npz_clusters)
+        self.curr_val_npz_cluster = np.load(all_val_npz_clusters[self.val_cluster_index])
+        self.val_images = self.curr_val_npz_cluster['images']
+        self.val_boxes = self.curr_val_npz_cluster['boxes']
+        self.val_batch_pointer = 0
 
     def load_train_batch(self, batch_size):
         while True:
-            # fix pointers if they extend to far!
+            # this means we have reached the end of our cluster and need to load another.
             if self.train_batch_pointer + batch_size > len(self.train_images):
-                self.train_batch_pointer = 0
+                self.load_train_cluster()
 
             initial_index = self.train_batch_pointer
             end_index = self.train_batch_pointer + batch_size
@@ -103,7 +145,7 @@ class TrainingData:
         while True:
             # fix pointers if they extend to far!
             if self.val_batch_pointer + batch_size > len(self.val_images):
-                self.val_batch_pointer = 0
+                self.load_val_cluster()
 
             initial_index = self.val_batch_pointer
             end_index = self.val_batch_pointer + batch_size
@@ -162,7 +204,6 @@ def _main(args):
         image_set='val', # assumes training/validation split is 0.9
         weights_name='trained_stage_3_best.h5',
         save_all=False)
-
 
 def get_classes(classes_path):
     '''loads the classes'''
