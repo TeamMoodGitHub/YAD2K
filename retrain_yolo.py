@@ -47,8 +47,8 @@ YOLO_ANCHORS = np.array(
 
 debug = False
 
-BATCH_SIZE_1 = 32
-BATCH_SIZE_2 = 8
+BATCH_SIZE_1 = 2#32
+BATCH_SIZE_2 = 2#8
 EPOCHS_1 = 5
 EPOCHS_2 = 30
 EPOCHS_3 = 30
@@ -96,20 +96,21 @@ class TrainingData:
         self.val_batch_pointer = 0
 
 
-        # # set up all the images
-        # if debug:
-        #     self.train_images = images[:11]
-        #     self.train_boxes = boxes[:11]
-        #     self.val_images = images[-11:]
-        #     self.val_boxes = boxes[-11:]
-
-
     def load_train_cluster(self):
+
+        # to fix #TODO from below
+        # left_over_images = []
+        # for i in range(self.train_batch_pointer, len(self.train_images)):
+        #     left_over_images.append(self.train_images[i])
+        # print("Leftover...")
+
+
         # first figure out which cluster we're moving to
         # mod length of all_train_npz_clusters keeps us in range
-        self.train_cluster_index = (self.train_cluster_index + 1) % len(all_train_npz_clusters)
+        self.train_cluster_index = (self.train_cluster_index + 1) % len(self.all_train_npz_clusters)
         # then load it
-        self.curr_train_npz_cluster = np.load(all_train_npz_clusters[self.train_cluster_index])
+        print("Loading new cluster... ", self.all_train_npz_clusters[self.train_cluster_index])
+        self.curr_train_npz_cluster = np.load(self.all_train_npz_clusters[self.train_cluster_index])
         # then append proper images/boxes
         self.train_images = self.curr_train_npz_cluster['images']
         self.train_boxes = self.curr_train_npz_cluster['boxes']
@@ -118,15 +119,19 @@ class TrainingData:
 
     # do same thing for val as done above for val clusters
     def load_val_cluster(self):
-        self.val_cluster_index = (self.val_cluster_index + 1) % len(all_val_npz_clusters)
-        self.curr_val_npz_cluster = np.load(all_val_npz_clusters[self.val_cluster_index])
+        self.val_cluster_index = (self.val_cluster_index + 1) % len(self.all_val_npz_clusters)
+        self.curr_val_npz_cluster = np.load(self.all_val_npz_clusters[self.val_cluster_index])
         self.val_images = self.curr_val_npz_cluster['images']
         self.val_boxes = self.curr_val_npz_cluster['boxes']
         self.val_batch_pointer = 0
 
     def load_train_batch(self, batch_size):
         while True:
+            print("TBP.. ", self.train_batch_pointer)
             # this means we have reached the end of our cluster and need to load another.
+            # TODO: this is sort of bad because we waste the frames left over.
+            # ex batch size 32, cluster as 63 images, after loading first 32 images
+            # 32 + 32 > 63, so we skip over all this precious data!
             if self.train_batch_pointer + batch_size > len(self.train_images):
                 self.load_train_cluster()
 
@@ -134,6 +139,8 @@ class TrainingData:
             end_index = self.train_batch_pointer + batch_size
             images_to_process = self.train_images[initial_index:end_index]
             boxes_to_process = self.train_boxes[initial_index:end_index]
+            print("Boxes to process... ")
+            print(boxes_to_process)
             # processed
             p_images, p_boxes = process_data(images_to_process, boxes_to_process)
             detectors_mask, matching_true_boxes = get_detector_mask(p_boxes, YOLO_ANCHORS)
@@ -176,9 +183,9 @@ def _main(args):
     anchors = get_anchors(anchors_path)
 
     # custom data saved as a numpy file.
-    data = (np.load(data_path))
+    # data = (np.load(data_path))
     # easy class to handle all the data
-    data = TrainingData(data)
+    data = TrainingData(['/Users/flynn/Documents/DeepLeague/data_training_set_cluster_0.npz', '/Users/flynn/Documents/DeepLeague/data_training_set_cluster_10.npz'], ['/Users/flynn/Documents/DeepLeague/data_training_set_cluster_7.npz'])
 
     anchors = YOLO_ANCHORS
     model_body, model = create_model(anchors, class_names)
