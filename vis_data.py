@@ -2,7 +2,15 @@ import cv2
 from PIL import Image, ImageDraw
 import numpy as np
 from read_ocr_and_lolesport_data import get_game_data_dict
+from paths import BASE_DATA_PATH
+import argparse
+import os
 
+parser = argparse.ArgumentParser(description='Visualize npz cluster ground truth data (or game_data object)')
+parser.add_argument('--path', type=str, default='data_training_set_cluster_0.npz', help='path to npz cluster to visualize')
+parser.add_argument('--dataset_type', type=str, default='npz', help='npz or game object')
+parser.add_argument('--champ_index', type=int, default=0, help='class to visualize. keep this at 0 to avoid going out of bounds')
+parser.add_argument('--refresh_rate', type=int, default=1, help='# of seconds between showing each new frame')
 
 def visualize_game_data(game_data, folder):
     for time_stamp in game_data:
@@ -11,16 +19,19 @@ def visualize_game_data(game_data, folder):
         if frame_obj.frame_path is not None:
             print("%s .... %s" % (frame_obj.time_obj.time_as_string, frame_obj.frame_path))
 
-            x_val = int(frame_obj.game_snap['playerStats']['10']['x'])
-            y_val = int(frame_obj.game_snap['playerStats']['10']['y'])
+            x_val = int(frame_obj.game_snap['playerStats']['1']['x'])
+            y_val = int(frame_obj.game_snap['playerStats']['1']['y'])
             print("X... ", x_val)
             print("Y.... ", y_val)
-            
+
             x_val_2 = int(frame_obj.game_snap['playerStats']['2']['x'])
             y_val_2 = int(frame_obj.game_snap['playerStats']['2']['y'])
 
+            print("X2... ", x_val_2)
+            print("Y2.... ", y_val_2)
+
             # load in image w/ PIL for easy drawing / cropping
-            im = Image.open('data/' + folder  + '/frames/' + frame_obj.frame_path).crop((1625, 785, 1920, 1080))
+            im = Image.open(BASE_DATA_PATH + folder  + '/frames/' + frame_obj.frame_path).crop((1625, 785, 1920, 1080))
             draw = ImageDraw.Draw(im)
             draw.rectangle([(x_val - 19, y_val - 20),(x_val + 11, y_val + 10)], outline='red')
             draw.rectangle([(x_val_2 - 19, y_val_2 - 20),(x_val_2 + 11, y_val_2 + 10)], outline='blue')
@@ -49,12 +60,18 @@ def visualize_npz_data(npz_file_path):
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
         cv2.imshow("IMAGE", img)
-        if cv2.waitKey(500)  ==  ord('q'):
+        if cv2.waitKey(250)  ==  ord('q'):
             break
         del draw
 if __name__ == "__main__":
+    args = parser.parse_args()
+    champ_index = args.champ_index
+    print(champ_index)
+
     # at this point, game_data has a dict of frame objects with a frame_path IF one was found for it.
     # game data's keys are in order of game time.
-    game_data = get_game_data_dict('DIG_P1_G_3_MARCH_4_2017')
-    visualize_game_data(game_data, 'DIG_P1_G_3_MARCH_4_2017')
-    # visualize_npz_data('data_training_set.npz')
+    # game_data = get_game_data_dict('GAM_LZ_G_1_OCTOBER_6_2017')
+    # visualize_game_data(game_data, 'GAM_LZ_G_1_OCTOBER_6_2017')
+    for i in range(0, 11):
+        print("Currenly on " + "data_training_set_cluster_" + str(i))
+        visualize_npz_data('/Volumes/DATA/clusters_cleaned/train/data_training_set_cluster_' + str(i) + ".npz")

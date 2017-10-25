@@ -8,6 +8,7 @@ from file_fixer import sort_files_numerically
 from pprint import pprint
 from PIL import Image, ImageDraw
 import numpy as np
+from paths import  BASE_DATA_PATH
 
 # holds all data associated with a specifc frame
 class Frame:
@@ -23,10 +24,22 @@ class EasyTime:
         self.seconds = seconds
         self.time_as_string = "%01d:%02d" % (minutes, seconds)
 
-BASE_DATA_PATH = 'data/'
-
 # pass it in the name of the folder with all the data for that specific game
 def get_game_data_dict(folder):
+    #TODO: Make this cleaner. Sometimes socket.json is bad!
+
+    try:
+        json_file = json.load(open(BASE_DATA_PATH + folder + '/socket.json', 'r'))
+    except Exception as e:
+        print('FARZA FIX SOCKET JSON FOR ' + folder)
+        return None
+
+    try:
+        json_file = json.load(open(BASE_DATA_PATH + folder + '/time_stamp_data_clean.json', 'r'))
+    except Exception as e:
+        print('FARZA FIX time stamp JSON FOR ' + folder)
+        return None
+
     game_data = create_data(folder)
     rescale_coordinates(game_data)
     remove_dead_times(game_data)
@@ -63,7 +76,10 @@ def create_data(folder):
         if time_obj.time_as_string in new_full_game_data:
             # only keep game frame if it has an actual frame associated with it
             if new_full_game_data[time_obj.time_as_string].frame_path == None:
-                new_full_game_data[time_obj.time_as_string].frame_path = time_frame['file_name']
+                if 'file_name' in time_frame:
+                    new_full_game_data[time_obj.time_as_string].frame_path = time_frame['file_name']
+                elif 'file_narme' in time_frame:
+                    new_full_game_data[time_obj.time_as_string].frame_path = time_frame['file_narme']
 
     return new_full_game_data
 

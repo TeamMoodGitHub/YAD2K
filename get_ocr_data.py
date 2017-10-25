@@ -16,16 +16,16 @@ from pprint import pprint
 import re
 import sys
 from read_ocr_and_lolesport_data import convert_string_time_to_easy_time
-
+from paths import BASE_DATA_PATH
 
 ENDPOINT_URL = 'https://vision.googleapis.com/v1/images:annotate'
 RESULTS_DIR = 'jsons'
 makedirs(RESULTS_DIR, exist_ok=True)
 
 
-API_KEY = "AIzaSyDhMnEGLQI74ecnXkpxzASuodml2KSTJSw"
+API_KEY = "AIzaSyDZKJ00w4fQX-Z9xxGIY5pykptFv3V7YGI"
 
-BASE_DATA_PATH = '/Volumes/DATA/data/data/'
+
 
 ocr_counter = 0
 def make_image_data_list(folder, image_filenames):
@@ -109,7 +109,7 @@ def create_data_json(folder):
             ocr_counter += 15
             if ocr_counter % 100:
                 print("OCR counter is currently at ", ocr_counter)
-            if ocr_counter > 200000:
+            if ocr_counter > 250000:
                 sys.exit(1)
             # print(len(response.json()['responses']))
             # print(response.json()['responses'][-1])
@@ -134,7 +134,7 @@ def create_data_json(folder):
                     continue
 
                 # create json objct to save data
-                obj = {'file_narme': imgname, 'time': time}
+                obj = {'file_name': imgname, 'time': time}
                 # save to JSON file
                 json.dump(obj, outfile)
 

@@ -5,8 +5,7 @@ import cv2
 from PIL import Image
 import numpy as np
 import os
-
-BASE_DATA_PATH = '/Volumes/DATA/data/data/'
+from paths import BASE_DATA_PATH
 
 def get_frames():
     for folder in os.listdir(BASE_DATA_PATH):
