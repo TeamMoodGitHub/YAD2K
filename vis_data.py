@@ -60,7 +60,7 @@ def visualize_npz_data(npz_file_path):
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
         cv2.imshow("IMAGE", img)
-        if cv2.waitKey(250)  ==  ord('q'):
+        if cv2.waitKey(1000)  ==  ord('q'):
             break
         del draw
 if __name__ == "__main__":
@@ -72,6 +72,6 @@ if __name__ == "__main__":
     # game data's keys are in order of game time.
     # game_data = get_game_data_dict('GAM_LZ_G_1_OCTOBER_6_2017')
     # visualize_game_data(game_data, 'GAM_LZ_G_1_OCTOBER_6_2017')
-    for i in range(0, 11):
+    for i in range(7, 11):
         print("Currenly on " + "data_training_set_cluster_" + str(i))
         visualize_npz_data('/Volumes/DATA/clusters_cleaned/train/data_training_set_cluster_' + str(i) + ".npz")

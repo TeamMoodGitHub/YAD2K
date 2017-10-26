@@ -162,7 +162,7 @@ def create_cluster_from_folders(folder_list, iterator):
 
 if __name__ == '__main__':
     folder_list, label_dict_yolo = get_me_folders_and_label_dict()
-    chunks_of_folders = [folder_list[i:i + 20] for i in range(0, len(folder_list), 20)]
+    chunks_of_folders = [folder_list[i:i + 10] for i in range(0, len(folder_list), 10)]
 
     iterator = 0
     for chunk in chunks_of_folders:
