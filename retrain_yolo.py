@@ -127,7 +127,7 @@ class TrainingData:
 
     def load_train_batch(self, batch_size):
         while True:
-            print("TBP.. ", self.train_batch_pointer)
+            # print("TBP.. ", self.train_batch_pointer)
             # this means we have reached the end of our cluster and need to load another.
             # TODO: this is sort of bad because we waste the frames left over.
             # ex batch size 32, cluster as 63 images, after loading first 32 images
@@ -139,8 +139,8 @@ class TrainingData:
             end_index = self.train_batch_pointer + batch_size
             images_to_process = self.train_images[initial_index:end_index]
             boxes_to_process = self.train_boxes[initial_index:end_index]
-            print("Boxes to process... ")
-            print(boxes_to_process)
+            # print("Boxes to process... ")
+            # print(boxes_to_process)
             # processed
             p_images, p_boxes = process_data(images_to_process, boxes_to_process)
             detectors_mask, matching_true_boxes = get_detector_mask(p_boxes, YOLO_ANCHORS)
@@ -167,12 +167,24 @@ class TrainingData:
 
     # total number of batches to run for one epoch
     def get_train_steps(self, batch_size):
-        return int(len(self.train_images) / batch_size)
+        print("Getting train steps...")
+        steps = 0
+        for cluster in self.all_train_npz_clusters:
+            loaded_clust = np.load(cluster)
+            steps += len(loaded_clust['images'])
+        print(steps / batch_size)
+        return steps / batch_size
 
     # total number of batches to run for validation
     def get_val_steps(self, batch_size):
-        return int(len(self.val_images) / batch_size)
-
+        print("Getting val steps...")
+        steps = 0
+        for cluster in self.all_val_npz_clusters:
+            loaded_clust = np.load(cluster)
+            steps += len(loaded_clust['images'])
+        # return int(len(self.val_images) / batch_size)
+        print(steps / batch_size)
+        return steps / batch_size
 
 def _main(args):
     data_path = os.path.expanduser(args.data_path)
@@ -185,7 +197,7 @@ def _main(args):
     # custom data saved as a numpy file.
     # data = (np.load(data_path))
     # easy class to handle all the data
-    data = TrainingData(['/Users/flynn/Documents/DeepLeague/data_training_set_cluster_0.npz', '/Users/flynn/Documents/DeepLeague/data_training_set_cluster_10.npz'], ['/Users/flynn/Documents/DeepLeague/data_training_set_cluster_7.npz'])
+    data = TrainingData(['/Volumes/DATA/clusters_cleaned/test/data_test_set_cluster_1.npz', '/Volumes/DATA/clusters_cleaned/test/data_test_set_cluster_2.npz'], ['/Volumes/DATA/clusters_cleaned/test/data_test_set_cluster_3.npz', '/Volumes/DATA/clusters_cleaned/test/data_test_set_cluster_4.npz'])
 
     anchors = YOLO_ANCHORS
     model_body, model = create_model(anchors, class_names)
