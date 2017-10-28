@@ -6,7 +6,7 @@ Yo whats up boys n girls my name's **Farza** and I'm an undergrad CS student at 
 
 Note: DeepLeague is built upon some complicated concepts. But, don't get discouraged! I made this so that anyone with a little knowledge about code and the command line would be able to use it!
 
-DeepLeague is the first program of its kinds that combines computer vision, deep learning, and League of Legends in order to move LoL analytics to the next level by giving developers **easy access** to the data encoded in the *pixels* of the game. Don't worry, I did all the heavy lifitng! It allows users to *input* just a League of Legends VOD and will *output* the coordinate location of all the champions in the game at every frame by **"watching"** the minimap. So, imagine you gave DeepLeague a VOD. It would output this:
+DeepLeague is the first program of its kind that combines computer vision, deep learning, and League of Legends in order to move LoL analytics to the next level by giving developers **easy access** to the data encoded in the *pixels* of the game. Don't worry, I did all the heavy lifitng! It allows users to *input* just a League of Legends VOD and will *output* the coordinate location of all the champions in the game at every frame by **"watching"** the minimap. So, imagine you gave DeepLeague a VOD. It would output this:
 
 I also offer a dataset of over 400,000 minimap images *labeled* with bounding boxes/ classes for you to train your own neural network. DeepLeague can do so much more, and you can help! You can read more about this in the Dataset section.
 
