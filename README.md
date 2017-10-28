@@ -1,6 +1,6 @@
 # DeepLeague - by Farza  
 
-Yo whats up boys n girls my name's **Farza** and I'm an undergrad CS student at UCF.  To read more about how I actually built this thing you can read the blog post here. And be sure to follow me on Twitter [here](https://twitter.com/farzatv?lang=en). I'm semi-lit. Also, very sorry if the code is ugly! I wrote most of it in two days.
+Yo whats up boys n girls my name's **Farza** and I'm an undergrad CS student at UCF. Hope you find my little creation useful! To read more about how I actually built this thing you can read the blog post here. And be sure to follow me on Twitter [here](https://twitter.com/farzatv?lang=en). I'm semi-lit. Also, very sorry if the code is ugly! I wrote most of it in two days.
 
 ### So what is it?
 
