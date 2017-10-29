@@ -44,6 +44,9 @@ $ conda env create -f environment.yml
 $ source activate yad2k
 
 TODO: switch yolo weights with deep league weights
+pip install opencv-python
+pip install youtube_dl
+
 $ wget http://pjreddie.com/media/files/yolo.weights
 $ wget https://raw.githubusercontent.com/pjreddie/darknet/master/cfg/yolo.cfg
 $ ./yad2k.py yolo.cfg yolo.weights model_data/yolo.h5
