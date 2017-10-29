@@ -46,6 +46,7 @@ $ source activate yad2k
 TODO: switch yolo weights with deep league weights
 pip install opencv-python
 pip install youtube_dl
+conda install -c menpo ffmpeg
 
 $ wget http://pjreddie.com/media/files/yolo.weights
 $ wget https://raw.githubusercontent.com/pjreddie/darknet/master/cfg/yolo.cfg
