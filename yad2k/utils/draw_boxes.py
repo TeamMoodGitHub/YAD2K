@@ -6,6 +6,7 @@ import random
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
+import os
 
 def get_colors_for_classes(num_classes):
     """Return list of random colors for number of classes given."""
@@ -43,9 +44,12 @@ def draw_boxes(image, boxes, box_classes, class_names, scores=None):
         A copy of `image` modified with given bounding boxes.
     """
     image = Image.fromarray(np.floor(image * 255 + 0.5).astype('uint8'))
-
+    if os.path.isdir('font/FiraMono-Medium.otf'):
+        font_path = 'font/FiraMono-Medium.otf'
+    else:
+        font_path = 'YAD2K/font/FiraMono-Medium.otf'
     font = ImageFont.truetype(
-        font='font/FiraMono-Medium.otf',
+        font= font_path,
         size=np.floor(3e-2 * image.size[1] + 0.5).astype('int32'))
     thickness = (image.size[0] + image.size[1]) // 300
 
