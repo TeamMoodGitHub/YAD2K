@@ -56,6 +56,11 @@ parser.add_argument(
     '--output_path',
     help='path to output test images')
 
+parser.add_argument(
+    '-champs',
+    '--champs_in_game',
+    help='to help avoid bad predictions, tell DeepLeague the 10 champions in the game of the VOD you are passing')
+
 subparsers = parser.add_subparsers(dest='subcommand')
 
 youtube_option = subparsers.add_parser('youtube')
@@ -110,6 +115,8 @@ output_path = os.path.expanduser(args.output_path)
 
 if args.subcommand == 'images':
     test_images_path = os.path.expanduser(args.test_images_path)
+    champs_in_game = os.path.expanduser(args.champs_in_game)
+    champs_in_game = champs_in_game.split(" ")
 
 if args.subcommand == 'npz':
     test_npz_path = os.path.expanduser(args.test_npz_path)
@@ -117,11 +124,13 @@ if args.subcommand == 'npz':
 if args.subcommand == 'mp4':
     test_mp4_vod_path = os.path.expanduser(args.test_mp4_vod_path)
 
+
 if args.subcommand == 'youtube':
     test_youtube_link = os.path.expanduser(args.test_youtube_link)
     youtube_download_path = os.path.expanduser(args.youtube_download_path)
     start_time = os.path.expanduser(args.start_time)
     end_time = os.path.expanduser(args.end_time)
+
 
 if not os.path.exists(output_path):
     print('Creating output path {}'.format(output_path))
@@ -214,6 +223,9 @@ def test_yolo(image, image_file_name):
         predicted_class = class_names[c]
         box = out_boxes[i]
         score = out_scores[i]
+
+        if predicted_class not in champs_in_game:
+            continue
 
         label = '{} {:.2f}'.format(predicted_class, score)
 

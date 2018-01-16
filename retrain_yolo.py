@@ -47,8 +47,8 @@ YOLO_ANCHORS = np.array(
 
 debug = False
 
-BATCH_SIZE_1 = 2#32
-BATCH_SIZE_2 = 2#8
+BATCH_SIZE_1 = 32
+BATCH_SIZE_2 = 8
 EPOCHS_1 = 5
 EPOCHS_2 = 30
 EPOCHS_3 = 30
@@ -173,7 +173,7 @@ class TrainingData:
             loaded_clust = np.load(cluster)
             steps += len(loaded_clust['images'])
         print(steps / batch_size)
-        return steps / batch_size
+        return int(steps / batch_size)
 
     # total number of batches to run for validation
     def get_val_steps(self, batch_size):
@@ -184,7 +184,7 @@ class TrainingData:
             steps += len(loaded_clust['images'])
         # return int(len(self.val_images) / batch_size)
         print(steps / batch_size)
-        return steps / batch_size
+        return int(steps / batch_size)
 
 def _main(args):
     data_path = os.path.expanduser(args.data_path)
@@ -197,7 +197,17 @@ def _main(args):
     # custom data saved as a numpy file.
     # data = (np.load(data_path))
     # easy class to handle all the data
-    data = TrainingData(['/Volumes/DATA/clusters_cleaned/test/data_test_set_cluster_1.npz', '/Volumes/DATA/clusters_cleaned/test/data_test_set_cluster_2.npz'], ['/Volumes/DATA/clusters_cleaned/test/data_test_set_cluster_3.npz', '/Volumes/DATA/clusters_cleaned/test/data_test_set_cluster_4.npz'])
+    train_clusts = os.listdir('/media/student/DATA/clusters_cleaned/train/')
+    val_clusts = os.listdir('/media/student/DATA/clusters_cleaned/val/')
+
+    train_clus_clean  = []
+    val_clus_clean = []
+    for folder_name in train_clusts:
+        train_clus_clean.append('/media/student/DATA/clusters_cleaned/train/' + folder_name)
+    for folder_name in val_clusts:
+        val_clus_clean.append('/media/student/DATA/clusters_cleaned/val/' + folder_name)
+
+    data = TrainingData(train_clus_clean, val_clus_clean)
 
     anchors = YOLO_ANCHORS
     model_body, model = create_model(anchors, class_names)
@@ -388,14 +398,13 @@ def train(model, class_names, anchors, data):
                                  save_weights_only=True, save_best_only=True)
     early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=15, verbose=1, mode='auto')
 
-    # print("Training on %d images " % len(data.train_images))
-    # model.fit_generator(data.load_train_batch(BATCH_SIZE_1),
-    #           steps_per_epoch=data.get_train_steps(BATCH_SIZE_1),
-    #           epochs=EPOCHS_1,
-    #           validation_data=data.load_val_batch(BATCH_SIZE_1),
-    #           validation_steps=data.get_val_steps(BATCH_SIZE_1),
-    #           max_queue_size = 2,
-    #           callbacks=[logging])
+    print("Training on %d images " % (data.get_train_steps(BATCH_SIZE_1) * BATCH_SIZE_1))
+    model.fit_generator(data.load_train_batch(BATCH_SIZE_1),
+               steps_per_epoch=data.get_train_steps(BATCH_SIZE_1),
+               epochs=EPOCHS_1,
+               validation_data=data.load_val_batch(BATCH_SIZE_1),
+               validation_steps=data.get_val_steps(BATCH_SIZE_1),
+               callbacks=[logging])
 
     model.save_weights('trained_stage_1.h5')
     print("Saved!")
@@ -415,7 +424,6 @@ def train(model, class_names, anchors, data):
               epochs=EPOCHS_2,
               validation_data=data.load_val_batch(BATCH_SIZE_2),
               validation_steps=data.get_val_steps(BATCH_SIZE_2),
-              max_queue_size = 2,
               callbacks=[logging])
 
     model.save_weights('trained_stage_2.h5')
@@ -426,7 +434,6 @@ def train(model, class_names, anchors, data):
               epochs=EPOCHS_3,
               validation_data=data.load_val_batch(BATCH_SIZE_2),
               validation_steps=data.get_val_steps(BATCH_SIZE_2),
-              max_queue_size = 2,
               callbacks=[logging, checkpoint, early_stopping])
 
     model.save_weights('trained_stage_3.h5')
