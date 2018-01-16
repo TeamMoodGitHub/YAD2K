@@ -44,6 +44,7 @@ def check_champs(json_file, champ_dict, folder_name):
     # these will be all the frames we want.
     folders_to_save.append(folder_name)
 
+
 def read_json():
     champ_dict = {}
     i= 0

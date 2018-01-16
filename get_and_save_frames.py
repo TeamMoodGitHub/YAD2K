@@ -46,7 +46,7 @@ def get_frames():
             # i think anymore than 2 FPS leads to to much repeat data.
             if count %  fps == 0:
                 im = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                im = Image.fromarray(frame)#.crop((1625, 785, 1920, 1080))
+                im = Image.fromarray(im)#.crop((1625, 785, 1920, 1080))
                 im = np.array(im, dtype = np.uint8)
                 cv2.imwrite(BASE_DATA_PATH + "/%s/frames/frame_%d.jpg" %  (folder, file_count), im)
                 file_count += 1
