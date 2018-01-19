@@ -7,6 +7,9 @@
 images/*
 images/out/*
 model_data/*_anchors.txt
+data/
+bin/
+Output/
 
 # Tensorboard training logs
 logs/
