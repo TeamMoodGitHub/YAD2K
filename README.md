@@ -1,4 +1,4 @@
-# DeepLeague + Dataset of over 450,000 labeled images - by Farza  
+# DeepLeague + Dataset of over 450,000 labeled images to further computer vision research within eSports - by Farza  
 
 
 ### Disclaimer
