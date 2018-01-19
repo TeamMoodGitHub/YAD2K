@@ -1,11 +1,12 @@
-# DeepLeague - by Farza  
+# DeepLeague + Dataset of over 450,000 labeled images - by Farza  
+
 
 ### Disclaimer
 I wrote the majority of this code in 5 days during a hurricane when I was bored. My code isn't horrible but it defnitely isn't a nice and fancy library with amazing documentation. There are likely many bugs and inefficiencies. 
 
 BUT, getting setup to run the test script is easy enough and I'll help you out there but if you want to actually mess with the core code you'll be mostly on your own. 
 
-If you have questions contact me on [Twitter](https://twitter.com/FarzaTV)
+If you have questions contact me on [Twitter](https://twitter.com/FarzaTV).
 
 ### How do I get DeepLeague?
 
@@ -62,9 +63,17 @@ Then you should see DeepLeague start predicting bounding boxes.
 
 ![Alt text](https://media.giphy.com/media/3oFzlYZnMiO1wSsc0g/giphy.gif)
 
+If you want to use a local mp4 file that you recorded yourself use the command below where -mp4 tells the script where the VOD is on your computer.
 
 ```sh
 python test_deep_league.py -out output mp4 -mp4 /Volumes/DATA/data/data/C9_CLG_G_2_MARCH_12_2017/vod.mp4
 ```
 
+### How do I get the dataset:
+
+I've split the dataset into multiple .npz files so it isn't just one massive file. I mainly did this to make batch training easier. Plus, its really annoying when you are downloading one big file and that download randomly fails and you need to start all over. 
+
+These .npz files only have the cropped mini maps frames and the bounding box information associated with every frame. If that's all you want, perfect. You can download it here. 
+
+If you want help reading this npz file, check out ```def visualize_npz_data``` [here](https://github.com/farzaa/DeepLeague/blob/master/vis_data.py).
 
