@@ -1,6 +1,6 @@
 # DeepLeague + Dataset of over 450,000 labeled images to further computer vision research within eSports - by Farza  
 
-
+![Alt text](https://media.giphy.com/media/3ohc0PVVsgt578uBkA/giphy.gif)
 ### Disclaimer
 I wrote the majority of this code in 5 days during a hurricane when I was bored. My code isn't horrible but it defnitely isn't a nice and fancy library with amazing documentation. There are likely many bugs and inefficiencies. 
 
@@ -72,6 +72,8 @@ python test_deep_league.py -out output mp4 -mp4 /Volumes/DATA/data/data/C9_CLG_G
 ### How do I get the dataset:
 
 I've split the dataset into multiple .npz files so it isn't just one massive file. I mainly did this to make batch training easier. Plus, its really annoying when you are downloading one big file and that download randomly fails and you need to start all over. 
+
+Also, I have already split the dataset into training, testing, and validation sets which splits the data into 80%, 17.5%, and 2.5% cuts respectively.
 
 These .npz files only have the cropped mini maps frames and the bounding box information associated with every frame. If that's all you want, perfect. You can download it here. 
 
