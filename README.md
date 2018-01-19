@@ -29,9 +29,8 @@ Here's a couple things you could do given the output of DeepLeague.
 ### Enough talk! How do I get it?
 Don't worry you won't need a Ph.D in AI to get this running! (good joke Farza hahahahaha kms!)
 
-All you need to get going in is [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git), [Python 3.6](https://www.python.org/downloads/), and [conda](https://conda.io/docs/user-guide/install/index.html) (you'll need to download them in this order!). Once you install them you can check if everything works okay by typing in these commands in your terminal.
+All you need to get going in is [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) and [conda](https://conda.io/docs/user-guide/install/index.html) for Python 3.6. Once you install them you can check if everything works okay by typing in these commands in your terminal.
 ```sh
-$ python
 $ conda
 $ git
 ```
