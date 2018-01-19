@@ -55,9 +55,11 @@ python test_deep_league.py -out output youtube -yt https://www.youtube.com/watch
 ```
 
 You should first see the download start:
+
 ![Alt Text](https://media.giphy.com/media/l49JQHcc04ZyYX3t6/giphy.gif)
 
 Then you should see DeepLeague start predicting bounding boxes. 
+
 ![Alt text](https://media.giphy.com/media/3oFzlYZnMiO1wSsc0g/giphy.gif)
 
 
