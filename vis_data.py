@@ -9,6 +9,7 @@ import random
 import numpy as np
 import os
 import re
+import time
 
 parser = argparse.ArgumentParser(description='Visualize npz cluster ground truth data (or game_data object)')
 parser.add_argument('--path', type=str, default='data_training_set_cluster_0.npz', help='path to npz cluster to visualize')
@@ -167,13 +168,19 @@ def sorted_nicely( l ):
 def visualize_frames_on_drive(images_path, refresh_rate):
     images = os.listdir(images_path)
     images = sorted_nicely(images)
-
+    first_run = True
     for image_file in images:
         print(image_file)
         im = cv2.imread(images_path + image_file)
+        im2 = cv2.imread("/Users/flynn/Documents/DeepLeague/YAD2K/frames_no_labels/" + image_file)
         cv2.imshow("IMAGE", im)
+        cv2.imshow("IMAGE2", im2)
         if cv2.waitKey(refresh_rate)  ==  ord('q'):
             break
+        if first_run:
+            first_run = False
+            time.sleep(15)
+
 
 def get_classes(classes_path):
     with open(classes_path) as f:
@@ -189,7 +196,7 @@ if __name__ == "__main__":
     # refresh_rate = args.refresh_rate
 
     # all_classes = get_classes(classes_path)
-    visualize_frames_on_drive(path, 50)
+    visualize_frames_on_drive(path, 80)
     # at this point, game_data has a dict of frame objects with a frame_path IF one was found for it.
     # game data's keys are in order of game time.
     # game_data = get_game_data_dict('GAM_LZ_G_1_OCTOBER_6_2017')

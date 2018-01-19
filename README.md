@@ -12,14 +12,14 @@ I also offer a dataset of over 400,000 minimap images *labeled* with bounding bo
 
 ### Wait wtf is the point?
 
-Riot API only allows people to get *post-game data*, things like kills, deaths, items purchased, etc. In terms of analytics, theres only so much you can do with this boring data. But what if you could get *live*  data during the game while a game is actually happening? Imagine if you called an API and got back information about stuff actually happening during that live game, things like: positions of the champions at specific timestamps, location of wards, status of towers, what items a person bought, when a champion is dead, etc. That'd be super cool! Just imagine all the insane analytics we'd be able to run on that. But, Riot simply does not allow it for obvious security reasons. 
+Riot API only allows people to get *post-game data*, things like kills, deaths, items purchased, etc. In terms of analytics, theres only so much you can do with this boring data. But what if you could get *live*  data during the game while a game is actually happening? Imagine if you called an API and got back information about stuff actually happening during that live game, things like: positions of the champions at specific timestamps, location of wards, status of towers, what items a person bought, when a champion is dead, etc. That'd be super cool! Just imagine all the insane analytics we'd be able to run on that. But, Riot simply does not allow it for obvious security reasons.
 
-BUT, this is all data you can get by actually watching the game, right? Though, we don't want to watch thounsands of hours of League of Legends! And this is where DeepLeague comes in. 
+BUT, this is all data you can get by actually watching the game, right? Though, we don't want to watch thounsands of hours of League of Legends! And this is where DeepLeague comes in.
 
 DeepLeague allows users to input a League of Legends VOD and will predict the location of all the champions in the game at every frame by **"watching"** the minimap. It does this by running the VOD through a deep convolutional neural net that I trained (on a dataset I gathered) which specializes in predicitng bounding boxes + classes. To read more about how things work, you can read the blog post here.
 
 ### Cool, what can I do with it?
-The possibilties with DeepLeague are endless and I really want people to create cool stuff based off it! 
+The possibilties with DeepLeague are endless and I really want people to create cool stuff based off it!
 
 Here's a couple things you could do given the output of DeepLeague.
 - analyze how the jungler paths, where he starts his route, when he ganks, when he backs, which lane he exerts the most pressure on, when mid roams, which lanes mid ganks when it roams
@@ -27,7 +27,7 @@ Here's a couple things you could do given the output of DeepLeague.
 - analyze when teams set up dives, when they decide to do dragon, how they rotate around the map as a team, how they set up baron, when they teamfight, when they hide in brushes
 
 ### Enough talk! How do I get it?
-Don't worry you won't need a Ph.D in AI to get this running! (good joke Farza hahahahaha kms!) 
+Don't worry you won't need a Ph.D in AI to get this running! (good joke Farza hahahahaha kms!)
 
 All you need to get going in is [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git), [Python 3.6](https://www.python.org/downloads/), and [conda](https://conda.io/docs/user-guide/install/index.html) (you'll need to download them in this order!). Once you install them you can check if everything works okay by typing in these commands in your terminal.
 ```sh
@@ -40,8 +40,8 @@ If you were able to run those three commands without any errors, you can continu
 $ git clone --recursive https://github.com/farzaa/DeepLeague.git
 $ cd DeepLeague
 $ cd YAD2K
-$ conda env create -f environment.yml
-$ source activate yad2k
+$ conda create -n DeepLeague python=3.6
+$ source activate DeepLeague
 
 TODO: switch yolo weights with deep league weights
 pip install opencv-python
@@ -72,4 +72,3 @@ With each VOD there is a massive json file associated with it that has informati
 
  - Write MORE Tests
  - Add Night Mode
-
